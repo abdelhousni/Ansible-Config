@@ -10,6 +10,10 @@
   tasks:
     - name: Block Handle issues
       block:
+
+        - name: Run ping check
+          ansible.builtin.ping:
+
         - name: Run Setup to gather facts
           ansible.builtin.setup:
 
@@ -48,6 +52,10 @@
   tasks:
     - name: Block Handle issues
       block:
+
+        - name: Run ping check
+          ansible.builtin.ping:
+
         - name: Run Setup to gather facts
           ansible.builtin.setup:
 
@@ -86,29 +94,32 @@
   tasks:
     - name: Block Handle issues
       block:
-      - name: Run Setup to gather facts
-        ansible.builtin.setup:
-        vars:
-          ansible_shell_type: powershell
+        - name: Run ping check
+          ansible.windows.win_ping:
 
-      - name: Get final list of unreachable hosts
-        ansible.builtin.add_host:
-          name: "{{ item }}"
-          groups: unreachable_hosts_final
-        loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-        run_once: true
+        - name: Run Setup to gather facts
+          ansible.builtin.setup:
+          vars:
+            ansible_shell_type: powershell
 
-      - name: Update SNOW CMDB
-        servicenow.itsm.configuration_item:
-          state: present
-          name: "{{ ansible_fqdn }}"
-          ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
-          sys_class_name: cmdb_ci_win_server
-          other:
-            fqdn: "{{ ansible_fqdn | default(omit) }}"
-            os: "{{ ansible_distribution | default(omit) }}"
-            host_name: "{{ ansible_fqdn | default(omit) }}"
-        delegate_to: localhost
+        - name: Get final list of unreachable hosts
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts_final
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
+        - name: Update SNOW CMDB
+          servicenow.itsm.configuration_item:
+            state: present
+            name: "{{ ansible_fqdn }}"
+            ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
+            sys_class_name: cmdb_ci_win_server
+            other:
+              fqdn: "{{ ansible_fqdn | default(omit) }}"
+              os: "{{ ansible_distribution | default(omit) }}"
+              host_name: "{{ ansible_fqdn | default(omit) }}"
+          delegate_to: localhost
 
       always:
         - name: Clear errors so the next play can see these hosts

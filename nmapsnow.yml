@@ -31,10 +31,8 @@
       rescue:
         - name: Create 'unreachable_hosts_1' group
           ansible.builtin.add_host:
-            name: "{{ item }}"
+            name: "{{ inventory_hostname }}"
             groups: unreachable_hosts_1
-          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-          run_once: true
 
 - name: Gather Facts using Credentials Set 2
   hosts: unreachable_hosts_1
@@ -67,10 +65,8 @@
       rescue:
         - name: Create 'unreachable_hosts_2' group
           ansible.builtin.add_host:
-            name: "{{ item }}"
+            name: "{{ inventory_hostname }}"
             groups: unreachable_hosts_2
-          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-          run_once: true
 
 - name: Gather Facts on remaining hosts using Windows Credentials
   hosts: unreachable_hosts_2
@@ -105,10 +101,8 @@
       rescue:
         - name: Get final list of unreachable hosts
           ansible.builtin.add_host:
-            name: "{{ item }}"
+            name: "{{ inventory_hostname }}"
             groups: unreachable_hosts_final
-          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-          run_once: true
 
 - name: Show Remaining Hosts
   hosts: localhost

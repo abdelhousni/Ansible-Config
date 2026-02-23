@@ -10,8 +10,6 @@
   tasks:
     - name: Run Setup to gather facts
       ansible.builtin.setup:
-        gather_timeout: 30
-      timeout: 30
 
     - name: Create 'unreachable_hosts' group
       ansible.builtin.add_host:
@@ -47,8 +45,6 @@
   tasks:
     - name: Run Setup to gather facts
       ansible.builtin.setup:
-        gather_timeout: 30
-      timeout: 30
 
     - name: Create 'unreachable_hosts_2' group
       ansible.builtin.add_host:
@@ -85,8 +81,6 @@
   tasks:
     - name: Run Setup to gather facts
       ansible.builtin.setup:
-        gather_timeout: 30
-      timeout: 30
       vars:
         ansible_shell_type: powershell
 

@@ -12,13 +12,8 @@
       block:
         - name: Run Setup to gather facts
           ansible.builtin.setup:
-
-        - name: Create 'unreachable_hosts' group
-          ansible.builtin.add_host:
-            name: "{{ item }}"
-            groups: unreachable_hosts
-          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-          run_once: true
+            gather_timeout: 30
+          timeout: 30
 
         - name: Update SNOW CMDB
           servicenow.itsm.configuration_item:
@@ -33,7 +28,14 @@
           delegate_to: localhost
           ignore_errors: true
 
-      always:
+      rescue:
+        - name: Create 'unreachable_hosts' group
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
         - name: Clear errors so the next play can see these hosts
           ansible.builtin.meta: clear_host_errors
 
@@ -50,13 +52,8 @@
       block:
         - name: Run Setup to gather facts
           ansible.builtin.setup:
-
-        - name: Create 'unreachable_hosts_2' group
-          ansible.builtin.add_host:
-            name: "{{ item }}"
-            groups: unreachable_hosts_2
-          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-          run_once: true
+            gather_timeout: 30
+          timeout: 30
 
         - name: Update SNOW CMDB
           servicenow.itsm.configuration_item:
@@ -70,7 +67,14 @@
               host_name: "{{ ansible_fqdn | default(omit) }}"
           delegate_to: localhost
           ignore_errors: true
-      always:
+      rescue:
+        - name: Create 'unreachable_hosts_2' group
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts_2
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
         - name: Clear errors so the next play can see these hosts
           ansible.builtin.meta: clear_host_errors
 
@@ -91,13 +95,6 @@
         vars:
           ansible_shell_type: powershell
 
-      - name: Get final list of unreachable hosts
-        ansible.builtin.add_host:
-          name: "{{ item }}"
-          groups: unreachable_hosts_final
-        loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-        run_once: true
-
       - name: Update SNOW CMDB
         servicenow.itsm.configuration_item:
           state: present
@@ -110,7 +107,14 @@
             host_name: "{{ ansible_fqdn | default(omit) }}"
         delegate_to: localhost
 
-      always:
+      rescue:
+        - name: Get final list of unreachable hosts
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts_final
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
         - name: Clear errors so the next play can see these hosts
           ansible.builtin.meta: clear_host_errors
 

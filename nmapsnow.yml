@@ -10,10 +10,6 @@
   tasks:
     - name: Block Handle issues
       block:
-
-        - name: Run ping check
-          ansible.builtin.ping:
-
         - name: Run Setup to gather facts
           ansible.builtin.setup:
 
@@ -37,13 +33,9 @@
           delegate_to: localhost
           ignore_errors: true
 
-- name: Clear all host errors
-  hosts: all
-  gather_facts: false
-
-  tasks:
-    - name: Clear errors so the next play can see hosts
-      ansible.builtin.meta: clear_host_errors
+      always:
+        - name: Clear errors so the next play can see these hosts
+          ansible.builtin.meta: clear_host_errors
 
 - name: Gather Facts using Credentials Set 2
   hosts: unreachable_hosts
@@ -56,10 +48,6 @@
   tasks:
     - name: Block Handle issues
       block:
-
-        - name: Run ping check
-          ansible.builtin.ping:
-
         - name: Run Setup to gather facts
           ansible.builtin.setup:
 
@@ -82,14 +70,10 @@
               host_name: "{{ ansible_fqdn | default(omit) }}"
           delegate_to: localhost
           ignore_errors: true
+      always:
+        - name: Clear errors so the next play can see these hosts
+          ansible.builtin.meta: clear_host_errors
 
-- name: Clear all host errors
-  hosts: all
-  gather_facts: false
-
-  tasks:
-    - name: Clear errors so the next play can see hosts
-      ansible.builtin.meta: clear_host_errors
 
 - name: Gather Facts on remaining hosts using Windows Credentials
   hosts: unreachable_hosts_2
@@ -102,32 +86,33 @@
   tasks:
     - name: Block Handle issues
       block:
-        - name: Run ping check
-          ansible.windows.win_ping:
+      - name: Run Setup to gather facts
+        ansible.builtin.setup:
+        vars:
+          ansible_shell_type: powershell
 
-        - name: Run Setup to gather facts
-          ansible.builtin.setup:
-          vars:
-            ansible_shell_type: powershell
+      - name: Get final list of unreachable hosts
+        ansible.builtin.add_host:
+          name: "{{ item }}"
+          groups: unreachable_hosts_final
+        loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+        run_once: true
 
-        - name: Get final list of unreachable hosts
-          ansible.builtin.add_host:
-            name: "{{ item }}"
-            groups: unreachable_hosts_final
-          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
-          run_once: true
+      - name: Update SNOW CMDB
+        servicenow.itsm.configuration_item:
+          state: present
+          name: "{{ ansible_fqdn }}"
+          ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
+          sys_class_name: cmdb_ci_win_server
+          other:
+            fqdn: "{{ ansible_fqdn | default(omit) }}"
+            os: "{{ ansible_distribution | default(omit) }}"
+            host_name: "{{ ansible_fqdn | default(omit) }}"
+        delegate_to: localhost
 
-        - name: Update SNOW CMDB
-          servicenow.itsm.configuration_item:
-            state: present
-            name: "{{ ansible_fqdn }}"
-            ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
-            sys_class_name: cmdb_ci_win_server
-            other:
-              fqdn: "{{ ansible_fqdn | default(omit) }}"
-              os: "{{ ansible_distribution | default(omit) }}"
-              host_name: "{{ ansible_fqdn | default(omit) }}"
-          delegate_to: localhost
+      always:
+        - name: Clear errors so the next play can see these hosts
+          ansible.builtin.meta: clear_host_errors
 
 - name: Show Remaining Hosts
   hosts: localhost

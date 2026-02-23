@@ -29,15 +29,15 @@
           ignore_errors: true
 
       rescue:
-        - name: Create 'unreachable_hosts' group
+        - name: Create 'unreachable_hosts_1' group
           ansible.builtin.add_host:
             name: "{{ item }}"
-            groups: unreachable_hosts
+            groups: unreachable_hosts_1
           loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
           run_once: true
 
 - name: Gather Facts using Credentials Set 2
-  hosts: unreachable_hosts
+  hosts: unreachable_hosts_1
   gather_facts: false
 
   vars:

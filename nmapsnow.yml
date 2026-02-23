@@ -38,7 +38,7 @@
           ignore_errors: true
 
 - name: Clear all host errors
-  hosts: localhost
+  hosts: all
   gather_facts: false
 
   tasks:
@@ -84,7 +84,7 @@
           ignore_errors: true
 
 - name: Clear all host errors
-  hosts: localhost
+  hosts: all
   gather_facts: false
 
   tasks:

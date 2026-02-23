@@ -1,6 +1,6 @@
 ---
 - name: Gather Facts using Credentials Set 1
-  hosts: ssh:!172.16.0.173:!aaplightspeed.shadowman.dev
+  hosts: ssh
   gather_facts: false
 
   vars:

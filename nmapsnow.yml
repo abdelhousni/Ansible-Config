@@ -83,22 +83,24 @@
   tasks:
     - name: Block Handle issues
       block:
-      - name: Run Setup to gather facts
-        ansible.builtin.setup:
-        vars:
-          ansible_shell_type: powershell
+        - name: Run Setup to gather facts
+          ansible.builtin.setup:
+            gather_timeout: 30
+          timeout: 30
+          vars:
+            ansible_shell_type: powershell
 
-      - name: Update SNOW CMDB
-        servicenow.itsm.configuration_item:
-          state: present
-          name: "{{ ansible_fqdn }}"
-          ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
-          sys_class_name: cmdb_ci_win_server
-          other:
-            fqdn: "{{ ansible_fqdn | default(omit) }}"
-            os: "{{ ansible_distribution | default(omit) }}"
-            host_name: "{{ ansible_fqdn | default(omit) }}"
-        delegate_to: localhost
+        - name: Update SNOW CMDB
+          servicenow.itsm.configuration_item:
+            state: present
+            name: "{{ ansible_fqdn }}"
+            ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
+            sys_class_name: cmdb_ci_win_server
+            other:
+              fqdn: "{{ ansible_fqdn | default(omit) }}"
+              os: "{{ ansible_distribution | default(omit) }}"
+              host_name: "{{ ansible_fqdn | default(omit) }}"
+          delegate_to: localhost
 
       rescue:
         - name: Get final list of unreachable hosts

@@ -45,6 +45,7 @@
             groups: unreachable_hosts
           loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
           run_once: true
+          delegate_to: localhost
 
         - name: Clear errors so the next play can see these hosts
           ansible.builtin.meta: clear_host_errors

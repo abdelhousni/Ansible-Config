@@ -13,6 +13,12 @@
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60
+            gather_subset:
+              - '!all'
+              - '!min'
+              - 'distribution'
+              - 'network'
+              - 'virtual'
           timeout: 60
 
         - name: Update SNOW CMDB

@@ -11,6 +11,13 @@
 
     - name: Block Handle issues
       block:
+        - name: Attempt Fast SSH Command
+          ansible.builtin.raw: "cat /etc/os-release"
+          register: raw_out
+          # This is the "Nuclear" timeout. If the command doesn't
+          # finish in 10s, Ansible kills the process locally.
+          vars:
+            ansible_command_timeout: 10
 
         - name: Run Setup to gather facts
           ansible.builtin.setup:

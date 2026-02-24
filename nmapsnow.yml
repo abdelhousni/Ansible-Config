@@ -10,6 +10,9 @@
   tasks:
     - name: Block Handle issues
       block:
+        - name: Ping all hosts
+          ansible.builtin.ping:
+
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60

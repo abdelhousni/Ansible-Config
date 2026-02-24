@@ -12,6 +12,14 @@
     - name: Block Handle issues
       block:
 
+        - name: Hard-Kill SSH Discovery
+          ansible.builtin.command: >
+            timeout 15s sshpass -p '{{ ansible_password }}'
+            ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no
+            -o PreferredAuthentications=password -o PubkeyAuthentication=no
+            {{ ansible_user }}@{{ inventory_hostname }} "cat /etc/os-release"
+          delegate_to: localhost
+
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60

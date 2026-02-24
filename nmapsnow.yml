@@ -8,22 +8,12 @@
     ansible_password: "{{ ansible_pass_1 }}"
 
   tasks:
-
     - name: Block Handle issues
       block:
-
-        - name: Hard-Kill SSH Discovery
-          ansible.builtin.command: >
-            timeout 15s sshpass -p '{{ ansible_password }}'
-            ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no
-            -o PreferredAuthentications=password -o PubkeyAuthentication=no
-            {{ ansible_user }}@{{ inventory_hostname }} "cat /etc/os-release"
-          delegate_to: localhost
-          no_log: true
-
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60
+          timeout: 60
 
         - name: Update SNOW CMDB
           servicenow.itsm.configuration_item:
@@ -45,7 +35,6 @@
             groups: unreachable_hosts
           loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
           run_once: true
-          delegate_to: localhost
 
         - name: Clear errors so the next play can see these hosts
           ansible.builtin.meta: clear_host_errors

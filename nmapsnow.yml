@@ -29,18 +29,6 @@
               - 'distribution'
               - 'network'
               - 'virtual'
-          async: 30
-          poll: 0
-
-
-        - name: Wait for result (With a Hard Stop)
-          ansible.builtin.async_status:
-            jid: "{{ async_os_check.ansible_job_id }}"
-          register: job_result
-          until: job_result.finished
-          retries: 10
-          delay: 3
-          when: async_os_check.ansible_job_id is defined
 
         - name: Update SNOW CMDB
           servicenow.itsm.configuration_item:

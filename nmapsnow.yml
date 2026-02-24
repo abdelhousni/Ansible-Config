@@ -25,6 +25,7 @@
               fqdn: "{{ ansible_fqdn | default(omit) }}"
               os: "{{ ansible_distribution + ansible_distribution_major_version | default(omit) }}"
               host_name: "{{ ansible_fqdn | default(omit) }}"
+              cpu_count: "{{ ansible_processor_vcpus }}"
           delegate_to: localhost
 
       rescue:
@@ -73,6 +74,7 @@
               fqdn: "{{ ansible_fqdn | default(omit) }}"
               os: "{{ ansible_distribution + ansible_distribution_major_version | default(omit) }}"
               host_name: "{{ ansible_fqdn | default(omit) }}"
+              cpu_count: "{{ ansible_processor_vcpus }}"
           delegate_to: localhost
 
       rescue:
@@ -104,12 +106,6 @@
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60
-            gather_subset:
-              - '!all'
-              - '!min'
-              - 'distribution'
-              - 'network'
-              - 'virtual'
           timeout: 60
           vars:
             ansible_shell_type: powershell
@@ -124,6 +120,7 @@
               fqdn: "{{ ansible_fqdn | default(omit) }}"
               os: "{{ ansible_distribution | default(omit) }}"
               host_name: "{{ ansible_fqdn | default(omit) }}"
+              cpu_count: "{{ ansible_processor_vcpus }}"
           delegate_to: localhost
 
       always:

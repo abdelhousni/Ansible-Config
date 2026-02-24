@@ -1,0 +1,139 @@
+---
+- name: Gather Facts using Credentials Set 1
+  hosts: ssh
+  gather_facts: false
+
+  vars:
+    ansible_user: "{{ ansible_user_1 }}"
+    ansible_password: "{{ ansible_pass_1 }}"
+
+  tasks:
+    - name: Block Handle issues
+      block:
+        - name: Run Setup to gather facts
+          ansible.builtin.setup:
+            gather_timeout: 60
+          timeout: 60
+
+        - name: Update SNOW CMDB
+          servicenow.itsm.configuration_item:
+            state: present
+            name: "{{ ansible_fqdn }}"
+            ip_address: "{{ ansible_default_ipv4.address | default(omit) }}"
+            sys_class_name: cmdb_ci_linux_server
+            other:
+              fqdn: "{{ ansible_fqdn | default(omit) }}"
+              os: "{{ ansible_distribution + ansible_distribution_major_version | default(omit) }}"
+              host_name: "{{ ansible_fqdn | default(omit) }}"
+          delegate_to: localhost
+          ignore_errors: true
+
+      rescue:
+        - name: Create 'unreachable_hosts' group
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
+        - name: Clear errors so the next play can see these hosts
+          ansible.builtin.meta: clear_host_errors
+
+        - name: End play
+          ansible.builtin.meta: end_play
+
+- name: Gather Facts using Credentials Set 2
+  hosts: unreachable_hosts
+  gather_facts: false
+
+  vars:
+    ansible_user: "{{ ansible_user_2 }}"
+    ansible_password: "{{ ansible_pass_2 }}"
+
+  tasks:
+    - name: Block Handle issues
+      block:
+        - name: Run Setup to gather facts
+          ansible.builtin.setup:
+            gather_timeout: 60
+          timeout: 60
+
+        - name: Update SNOW CMDB
+          servicenow.itsm.configuration_item:
+            state: present
+            name: "{{ ansible_fqdn }}"
+            ip_address: "{{ ansible_default_ipv4.address | default(omit) }}"
+            sys_class_name: cmdb_ci_linux_server
+            other:
+              fqdn: "{{ ansible_fqdn | default(omit) }}"
+              os: "{{ ansible_distribution + ansible_distribution_major_version | default(omit) }}"
+              host_name: "{{ ansible_fqdn | default(omit) }}"
+          delegate_to: localhost
+          ignore_errors: true
+      rescue:
+        - name: Create 'unreachable_hosts_2' group
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts_2
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
+        - name: Clear errors so the next play can see these hosts
+          ansible.builtin.meta: clear_host_errors
+
+        - name: End play
+          ansible.builtin.meta: end_play
+
+
+- name: Gather Facts on remaining hosts using Windows Credentials
+  hosts: unreachable_hosts_2
+  gather_facts: false
+
+  vars:
+    ansible_user: "{{ ansible_user_3 }}"
+    ansible_password: "{{ ansible_pass_3 }}"
+
+  tasks:
+    - name: Block Handle issues
+      block:
+      - name: Run Setup to gather facts
+        ansible.builtin.setup:
+          gather_timeout: 60
+        timeout: 60
+        vars:
+          ansible_shell_type: powershell
+
+      - name: Update SNOW CMDB
+        servicenow.itsm.configuration_item:
+          state: present
+          name: "{{ ansible_fqdn }}"
+          ip_address: "{{ ansible_interfaces[0].ipv4.address | default(omit) }}"
+          sys_class_name: cmdb_ci_win_server
+          other:
+            fqdn: "{{ ansible_fqdn | default(omit) }}"
+            os: "{{ ansible_distribution | default(omit) }}"
+            host_name: "{{ ansible_fqdn | default(omit) }}"
+        delegate_to: localhost
+
+      always:
+        - name: Get final list of unreachable hosts
+          ansible.builtin.add_host:
+            name: "{{ item }}"
+            groups: unreachable_hosts_final
+          loop: "{{ ansible_play_hosts_all | difference(ansible_play_batch) }}"
+          run_once: true
+
+        - name: Clear errors so the next play can see these hosts
+          ansible.builtin.meta: clear_host_errors
+
+        - name: End play
+          ansible.builtin.meta: end_play
+
+- name: Show Remaining Hosts
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Display hosts in unreachable_hosts_final
+      ansible.builtin.debug:
+        msg: "{{ groups['unreachable_hosts_final'] }}"

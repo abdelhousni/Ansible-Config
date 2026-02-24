@@ -11,13 +11,22 @@
 
     - name: Block Handle issues
       block:
-        - name: Attempt Fast SSH Command
+        - name: Run OS check in the background (Async)
           ansible.builtin.raw: "cat /etc/os-release"
-          register: raw_out
-          # This is the "Nuclear" timeout. If the command doesn't
-          # finish in 10s, Ansible kills the process locally.
-          vars:
-            ansible_command_timeout: 10
+          register: async_os_check
+          # 'async' is the total max time to wait
+          # 'poll' is 0, meaning "don't wait for it to finish"
+          async: 15
+          poll: 0
+
+        - name: Wait for result (With a Hard Stop)
+          ansible.builtin.async_status:
+            jid: "{{ async_os_check.ansible_job_id }}"
+          register: job_result
+          until: job_result.finished
+          retries: 5
+          delay: 2
+          when: async_os_check.ansible_job_id is defined
 
         - name: Run Setup to gather facts
           ansible.builtin.setup:

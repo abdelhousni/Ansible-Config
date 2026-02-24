@@ -19,16 +19,11 @@
             -o PreferredAuthentications=password -o PubkeyAuthentication=no
             {{ ansible_user }}@{{ inventory_hostname }} "cat /etc/os-release"
           delegate_to: localhost
+          no_log: true
 
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60
-            gather_subset:
-              - '!all'
-              - '!min'
-              - 'distribution'
-              - 'network'
-              - 'virtual'
 
         - name: Update SNOW CMDB
           servicenow.itsm.configuration_item:
@@ -71,12 +66,6 @@
         - name: Run Setup to gather facts
           ansible.builtin.setup:
             gather_timeout: 60
-            gather_subset:
-              - '!all'
-              - '!min'
-              - 'distribution'
-              - 'network'
-              - 'virtual'
           timeout: 60
 
         - name: Update SNOW CMDB

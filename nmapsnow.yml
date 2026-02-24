@@ -11,18 +11,6 @@
 
     - name: Block Handle issues
       block:
-        - name: Pre-check Port 22 (Prevents SSH Hangs)
-          ansible.builtin.wait_for:
-            host: "{{ inventory_hostname }}"
-            port: 22
-            state: started
-            delay: 0
-            timeout: 5
-          delegate_to: localhost
-
-
-        - name: Ping all hosts
-          ansible.builtin.ping:
 
         - name: Run Setup to gather facts
           ansible.builtin.setup:

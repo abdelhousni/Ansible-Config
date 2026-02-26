@@ -1,12 +1,29 @@
 schemaVersion: 2.3.0
+attributes:
+  controller.devfile.io/storage-type: per-workspace
 metadata:
   name: ansible-config-development
+projects:
+  - name: ansible-config
+    git:
+      remotes:
+        origin: https://github.com/shadowman-lab/Ansible-Config.git
+      checkoutFrom:
+        remote: origin
+        revision: main
+    clonePath: ansible-config
 components:
-  - container:
-      args: ['tail', '-f', '/dev/null']
-      image: 'aap.shadowman.dev/ansibledevspaces:latest'
-      memoryRequest: 256M
-      memoryLimit: 6Gi
+  - name: dev-tools
+    container:
+      image: aap.shadowman.dev/ansibledevspaces:latest
+      memoryRequest: 512M
+      memoryLimit: 8Gi
       cpuRequest: 250m
       cpuLimit: 2000m
-    name: ansible
+      env:
+        - name: HOME
+          value: "/projects/ansible-config"
+        - name: VSCODE_DEFAULT_WORKSPACE
+          value: "/projects/ansible-config/.code-workspace"
+        - name: ANSIBLE_COLLECTIONS_PATH
+          value: "/projects/ansible-config/.ansible/collections:/usr/share/ansible/collections:/projects/ansible-config/collections"
